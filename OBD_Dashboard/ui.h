@@ -62,7 +62,7 @@ public:
   static const int BAR_H = 26;
   static const int RPM_MAX = 8000, RPM_RED = 6500;
   static const int GAUGE_CARDS = 6, GRID_CARDS = 8;
-  enum Kind { RACE, DIGITAL, GAUGE, TRIP, TIMER, GRID, DTC };
+  enum Kind { RACE, DIGITAL, GAUGE, TRIP, TIMER, GRID, HEALTH, DTC };
 
   explicit Dashboard(LGFX &l) : lcd(l), gauge(&l), cardS(&l), cardL(&l) {}
 
@@ -88,8 +88,8 @@ public:
     for (auto &s : shown) s = "\x01";
     shownDtc = 0xFFFFFFFF;
     lastStatus = "";
-    if (k == RACE || k == DIGITAL || k == TRIP || k == TIMER) {
-      // these pages draw themselves (race.h / trip.h / launch.h)
+    if (k == RACE || k == DIGITAL || k == TRIP || k == TIMER || k == HEALTH) {
+      // these pages draw themselves (race.h / trip.h / launch.h / health.h)
     } else if (k == GAUGE) {
       lcd.fillRect(GAUGE_W, BAR_H, lcd.width() - GAUGE_W, lcd.height() - BAR_H, theme::BG);
       gauge.pushSprite(0, GAUGE_Y);

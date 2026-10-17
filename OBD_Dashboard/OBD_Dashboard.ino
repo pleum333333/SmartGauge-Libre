@@ -26,6 +26,7 @@
 #include "race.h"
 #include "trip.h"
 #include "launch.h"
+#include "health.h"
 
 static const int BACKLIGHT = 90;  // 0..255; full brightness draws a lot more current
 
@@ -37,6 +38,9 @@ static TripPage tripPage(lcd);
 static TimerPage timerPage(lcd);
 static TripComputer realTrip(true), demoTrip(false);  // demo km never touch the saved trips
 static LaunchTimer launch;
+static health::Monitor realHealth(true), demoHealth(false);  // demo shows a canned history
+static health::Page healthView(lcd);
+static uint32_t healthNoticeUntil = 0;
 static float boostPeak = NAN;
 static Elm327Ble elm;
 
@@ -70,6 +74,7 @@ static const uint8_t MAIN_PIDS[Dashboard::GAUGE_CARDS] = {0x05, 0x0E, 0x04, 0x0F
 static int mainIdx[Dashboard::GAUGE_CARDS];
 static int rpmIdx, speedIdx, coolIdx, ignIdx, fuelIdx, battIdx, oilIdx;
 static int mapIdx, baroIdx, intakeIdx, loadIdx, throttleIdx, lambdaIdx, lambdaCmdIdx;
+static int ltft1Idx, ltft2Idx, o2FrontIdx, o2RearIdx;
 
 // Fixed pages before the per-PID grid pages.
 enum { PAGE_RACE, PAGE_DIGITAL, PAGE_GAUGE, PAGE_TRIP, PAGE_TIMER, FIXED_PAGES };
@@ -88,7 +93,8 @@ static bool available(uint8_t pid) {
 }
 
 static int gridPages() { return (gridCount + Dashboard::GRID_CARDS - 1) / Dashboard::GRID_CARDS; }
-static int pageCount() { return FIXED_PAGES + gridPages() + 1; }
+static int pageCount() { return FIXED_PAGES + gridPages() + 2; }
+static int healthPage() { return pageCount() - 2; }
 static int dtcPage() { return pageCount() - 1; }
 
 static void setPoll(const int *idx, int n, bool fast, bool background = true) {
@@ -100,6 +106,7 @@ static void setPoll(const int *idx, int n, bool fast, bool background = true) {
 }
 
 static TripComputer &trip() { return demo ? demoTrip : realTrip; }
+static health::Monitor &healthMon() { return demo ? demoHealth : realHealth; }
 
 // While the timer is armed only speed is read, so samples come as fast as the adapter allows.
 static void setTimerPoll() {
@@ -130,6 +137,11 @@ static void showPage(int p) {
     dash.showPage(Dashboard::TIMER, nullptr, 0);
     timerPage.show();
     setTimerPoll();
+  } else if (page == healthPage()) {
+    dash.showPage(Dashboard::HEALTH, nullptr, 0);
+    healthView.show();
+    int idx[] = {battIdx, coolIdx, ltft1Idx, ltft2Idx, o2FrontIdx, o2RearIdx, rpmIdx};
+    setPoll(idx, 7, false);
   } else if (page < dtcPage()) {
     int first = (page - FIXED_PAGES) * Dashboard::GRID_CARDS;
     int n = min(Dashboard::GRID_CARDS, gridCount - first);
@@ -184,6 +196,20 @@ static int nextWatched() {
   return -1;
 }
 
+// HEALTH keeps its own inputs fresh on every page: the O2 pair gets every other
+// slot (the catalyst check needs their swing), the rest share the remaining ones.
+static int nextHealthPid() {
+  static int pos = 0;
+  const int order[] = {o2FrontIdx, o2RearIdx, battIdx, o2FrontIdx, o2RearIdx, coolIdx, o2FrontIdx, o2RearIdx,
+                       ltft1Idx, o2FrontIdx, o2RearIdx, rpmIdx, o2FrontIdx, o2RearIdx, ltft2Idx};
+  const int n = sizeof order / sizeof order[0];
+  for (int k = 0; k < n; k++) {
+    int i = order[pos++ % n];
+    if (i >= 0 && (PIDS[i].pid == 0x42 || elm.supports(PIDS[i].pid))) return i;
+  }
+  return -1;
+}
+
 static void readDtcNow() {
   dtcBusy = true;
   DtcReport r;
@@ -225,6 +251,12 @@ static void pollLive() {
     if (!fast && !inList(speedIdx)) readOne(speedIdx);
     int w = nextWatched();
     if (w >= 0 && !inList(w)) readOne(w);
+  }
+  static uint32_t lastHealth = 0;
+  if (background && millis() - lastHealth >= 400) {
+    lastHealth = millis();
+    int h = nextHealthPid();
+    if (h >= 0 && !inList(h) && !(fast && h == rpmIdx)) readOne(h);
   }
   if (dtcWanted) {
     dtcWanted = false;
@@ -335,11 +367,13 @@ static void simulate() {
 }
 
 static void setDemo(bool on) {
+  realHealth.endDrive(millis());  // a demo session is not a drive
   demo = on;
   wantDisconnect = true;
   clearPidValues();
   boostPeak = NAN;
   demoTrip.begin();
+  demoHealth.seedDemo();
   launch.clear();
   {
     Locked l;
@@ -360,6 +394,7 @@ static void onLongPress(int x, int y) {
   else if (page == PAGE_DIGITAL && DigitalPage::isPeakArea(x, y)) boostPeak = NAN;
   else if (page == PAGE_TRIP && y > Dashboard::BAR_H + 6) trip().reset(TripPage::panelAt(x));
   else if (page == PAGE_TIMER && TimerPage::isResultArea(x, y)) launch.clear();
+  else if (page == healthPage() && health::Page::isResetArea(x, y)) healthMon().resetBaseline();
 }
 
 static void onTap(int x, int y) {
@@ -417,6 +452,26 @@ static void consumeSpeed() {
   launch.feed(v, t);
 }
 
+// Feeds the health monitor once a second; when a drive starts or ends with a
+// check at CHECK/FAULT, the status line says so for a while (once, no blinking).
+static void tickHealth(uint32_t now) {
+  static uint32_t last = 0, seenVersion = 0;
+  static bool wasDriving = false;
+  if (now - last < 1000) return;
+  last = now;
+  health::Monitor &m = healthMon();
+  if (!demo) {
+    health::Inputs in = {pidValues[rpmIdx], pidValues[battIdx], pidValues[coolIdx], pidValues[ltft1Idx],
+                         ltft2Idx >= 0 ? pidValues[ltft2Idx] : NAN, pidValues[o2FrontIdx], pidValues[o2RearIdx],
+                         live(), live() && elm.supports(0x14) && elm.supports(0x15)};
+    m.tick(in, now);
+  }
+  bool started = m.driving() && !wasDriving;
+  wasDriving = m.driving();
+  if ((started || m.version != seenVersion) && m.worst() >= health::WARN) healthNoticeUntil = now + 20000;
+  seenVersion = m.version;
+}
+
 // Cap the UI at ~60 fps (the panel refreshes at ~57 Hz, faster is wasted work).
 static void paceFrame() {
   static uint32_t next = 0, fpsStart = 0, frames = 0;
@@ -448,6 +503,9 @@ static void render() {
     msg = String(d.label) + " " + String(pidValues[al], (unsigned int)d.decimals) + " " + (d.unit[0] == '*' ? d.unit + 1 : d.unit);
     dot = theme::RED;
     msgColor = theme::RED;
+  } else if ((int32_t)(healthNoticeUntil - now) > 0 && page != healthPage()) {
+    msg = "HEALTH: see page";
+    dot = msgColor = healthMon().worst() == health::BAD ? theme::RED : theme::AMBER;
   }
   dash.status(msg, dot, demo, page, pageCount(), fps, msgColor);
 
@@ -478,6 +536,11 @@ static void render() {
     case Dashboard::TIMER: timerPage.update(launch, pidValues[speedIdx], now); break;
     case Dashboard::GAUGE: dash.updateGauge(rpmIdx, speedIdx); break;
     case Dashboard::GRID: dash.updateCards(); break;
+    case Dashboard::HEALTH: {
+      Locked l;
+      healthView.update(healthMon(), dtc, demo || live());
+      break;
+    }
     case Dashboard::DTC: {
       Locked l;
       dash.updateDtc(dtc, demo || live(), dtcBusy);
@@ -511,11 +574,17 @@ void setup() {
   throttleIdx = pidIndex(0x11);
   lambdaIdx = pidIndex(0x24);
   lambdaCmdIdx = pidIndex(0x44);
+  ltft1Idx = pidIndex(0x07);
+  ltft2Idx = pidIndex(0x09);
+  o2FrontIdx = pidIndex(0x14);
+  o2RearIdx = pidIndex(0x15);
   for (int i = 0; i < Dashboard::GAUGE_CARDS; i++) mainIdx[i] = pidIndex(MAIN_PIDS[i]);
   clearPidValues();
   alarms::load();
   realTrip.begin();
   demoTrip.begin();
+  realHealth.begin();
+  demoHealth.seedDemo();
 
   lcd.init();
   lcd.setBrightness(0);
@@ -528,6 +597,7 @@ void setup() {
   digitalPage.begin();
   tripPage.begin();
   timerPage.begin();
+  healthView.begin();
   while (millis() - splashAt < 1800) delay(10);
   buildPages();
   render();
@@ -541,6 +611,7 @@ static void resetCurrent(int which) {
   if (page == PAGE_RACE || page == PAGE_DIGITAL) boostPeak = NAN;
   else if (page == PAGE_TRIP) trip().reset(which);
   else if (page == PAGE_TIMER) launch.clear();
+  else if (page == healthPage()) healthMon().resetBaseline();
 }
 
 // "L"        list limits      "L05 - 110"  coolant: no low limit, high 110
@@ -602,6 +673,7 @@ void loop() {
   if (demo) simulate();
   consumeSpeed();
   trip().loop(millis());
+  tickHealth(millis());
   render();
   paceFrame();
 }
