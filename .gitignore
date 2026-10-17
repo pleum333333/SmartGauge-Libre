@@ -1,0 +1,6 @@
+build/
+*.bin
+*.elf
+__pycache__/
+*.png.tmp
+out.png

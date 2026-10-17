@@ -1,0 +1,54 @@
+SmartGauge Libre
+Copyright (c) 2026 khanatuch
+Code written by khanatuch & Claude (AI)
+Original source: https://github.com/khanatuch/SmartGauge-Libre
+
+Licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0
+International License (CC BY-NC-SA 4.0). See the LICENSE file or
+https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+-------------------------------------------------------------------------------
+REQUIRED ATTRIBUTION  /  การให้เครดิตที่ต้องคงไว้
+-------------------------------------------------------------------------------
+If you share this project or anything made from it (source code, firmware
+binaries, modified versions, screenshots in a product listing, videos, ...),
+you must keep this credit visible:
+
+    Based on "SmartGauge Libre" by khanatuch
+    (code written by khanatuch & Claude (AI))
+    https://github.com/khanatuch/SmartGauge-Libre
+    Licensed CC BY-NC-SA 4.0 — changes made: <describe your changes>
+
+The firmware shows the same credit on its boot screen. Removing or hiding the
+boot-screen credit in a shared build does not give reasonable attribution.
+
+ถ้าเผยแพร่โปรเจกต์นี้หรือสิ่งที่ดัดแปลงจากโปรเจกต์นี้ (ซอร์สโค้ด ไฟล์เฟิร์มแวร์
+เวอร์ชันที่แก้ไข ภาพหน้าจอในประกาศขาย คลิป ฯลฯ) ต้องคงข้อความเครดิตด้านบนไว้
+และห้ามลบหรือซ่อนเครดิตบนหน้าจอตอนเปิดเครื่อง
+
+-------------------------------------------------------------------------------
+NO COMMERCIAL USE  /  ห้ามใช้เชิงพาณิชย์
+-------------------------------------------------------------------------------
+You may not sell this project or anything derived from it: no selling the
+firmware, flashed boards, "smart gauge" kits, code, or installation of it as a
+paid product or service. For any commercial use, ask khanatuch for written
+permission first.
+
+ห้ามขายโปรเจกต์นี้หรือสิ่งที่ดัดแปลงจากโปรเจกต์นี้ ไม่ว่าจะเป็นเฟิร์มแวร์ บอร์ดที่แฟลชแล้ว
+ชุดสมาร์ทเกจ โค้ด หรือบริการติดตั้งแบบคิดเงิน ถ้าต้องการใช้เชิงพาณิชย์ต้องขออนุญาต
+khanatuch เป็นลายลักษณ์อักษรก่อน
+
+-------------------------------------------------------------------------------
+SHARE ALIKE  /  แก้แล้วต้องเปิดด้วยเงื่อนไขเดียวกัน
+-------------------------------------------------------------------------------
+If you share a modified version, it must be under CC BY-NC-SA 4.0 as well.
+We also ask (request, see CONTRIBUTING.md) that you publish the full source
+code of your changes and send improvements back as a pull request, so the
+project keeps improving in one place.
+
+-------------------------------------------------------------------------------
+THIRD-PARTY COMPONENTS
+-------------------------------------------------------------------------------
+This license covers only the code and documents written for this project.
+Libraries used by the firmware keep their own licenses — see
+THIRD_PARTY_LICENSES.md.
