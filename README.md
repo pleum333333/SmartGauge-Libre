@@ -68,6 +68,9 @@ arduino-cli compile --fqbn esp32:esp32:esp32s3:PSRAM=opi,FlashSize=16M,Partition
 ## ไลเซนส์
 
 [GPL-3.0-or-later](LICENSE) — ใช้ แก้ แจกได้ฟรี **ขายได้ แต่ผู้ซื้อต้องได้ซอร์สโค้ดเต็ม** ต้องให้เครดิตตาม [NOTICE](NOTICE) และเวอร์ชันที่แก้ต้องใช้ GPL-3.0 เหมือนกัน
+**ขอเครดิตเล็ก ๆ:** เวอร์ชันที่แก้แล้วแจก/ขาย ต้องคงเครดิตสั้น ๆ เช่น "Based on SmartGauge Libre by khanatuch" ไว้บนหน้าจอตอนบูตหรือหน้า About และคงบรรทัดเครดิตบนหัวไฟล์ (เงื่อนไขเพิ่มตาม GPL-3.0 ข้อ 7(b) — ดู [NOTICE](NOTICE))
+*Additional term (GPL-3.0 §7(b)): modified versions must keep a short author credit on the boot or About screen and in source headers — see [NOTICE](NOTICE).*
+
 ไลบรารีที่ใช้มีไลเซนส์ของตัวเอง — [THIRD_PARTY_LICENSES](THIRD_PARTY_LICENSES.md) · ชื่อโปรเจกต์ — [TRADEMARKS](TRADEMARKS.md)
 
 > เป็น **open source** ตามนิยามของ OSI — เปลี่ยนจาก CC BY-NC-SA 4.0 เมื่อ 17 ต.ค. 2026 (สำเนาเก่าที่แจกไปแล้วยังเป็นไลเซนส์เดิม)

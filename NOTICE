@@ -16,21 +16,35 @@ https://www.gnu.org/licenses/gpl-3.0.html for details.
 -------------------------------------------------------------------------------
 REQUIRED ATTRIBUTION  /  การให้เครดิตที่ต้องคงไว้
 -------------------------------------------------------------------------------
-Additional term under GPL-3.0 section 7(b): if you convey this project or a
-work based on it (source code, firmware binaries, flashed boards, modified
-versions), you must keep this author attribution:
+ADDITIONAL TERM under GPL-3.0 section 7(b) (preservation of author
+attribution). If you convey this program or a modified version of it
+(source code, firmware binaries, flashed boards):
+
+  1. Keep a short author credit, for example "Based on SmartGauge Libre by
+     khanatuch" or the existing PROJECT_CREDIT line from project.h, visible
+     on the boot screen or on an About screen of the device. Any readable
+     size and placement is fine; it does not have to be on every screen.
+  2. Keep the copyright/credit line at the top of each source file that
+     came from this project.
+  3. Keep this NOTICE file with the source.
+
+This term asks only for attribution. It does not limit use, selling,
+modification or the name you give your version (but see NAME below), and it
+does not require you to endorse anything. Under section 7 it applies only
+to parts that come from this project.
+
+Suggested credit text for documentation and product pages:
 
     Based on "SmartGauge Libre" by khanatuch
     (code written by khanatuch & Claude (AI))
     https://github.com/khanatuch/SmartGauge-Libre
     Licensed GPL-3.0-or-later — changes made: <describe your changes>
 
-The firmware shows this credit on its boot screen (its Appropriate Legal
-Notices). Keep that boot-screen credit in builds you share.
-
-ถ้าเผยแพร่โปรเจกต์นี้หรือสิ่งที่ดัดแปลงจากโปรเจกต์นี้ (ซอร์สโค้ด ไฟล์เฟิร์มแวร์
-บอร์ดที่แฟลชแล้ว เวอร์ชันที่แก้ไข) ต้องคงข้อความเครดิตด้านบนไว้
-และห้ามลบเครดิตบนหน้าจอตอนเปิดเครื่อง
+เงื่อนไขเพิ่มตาม GPL-3.0 ข้อ 7(b) (คงเครดิตผู้สร้าง): ถ้าแจกหรือขายโปรเจกต์นี้
+หรือเวอร์ชันที่แก้ไข ต้อง (1) คงเครดิตสั้น ๆ เช่น "Based on SmartGauge Libre by
+khanatuch" หรือบรรทัด PROJECT_CREDIT ไว้บนหน้าจอตอนบูตหรือหน้า About
+(2) คงบรรทัดลิขสิทธิ์/เครดิตบนหัวไฟล์ซอร์ส (3) คงไฟล์ NOTICE นี้ไว้
+— ขอแค่เครดิต ไม่จำกัดการใช้ การขาย หรือการแก้ไข
 
 -------------------------------------------------------------------------------
 SELLING IS ALLOWED, WITH SOURCE  /  ขายได้ แต่ต้องให้ซอร์สโค้ด
@@ -48,7 +62,8 @@ NAME  /  ชื่อโปรเจกต์
 -------------------------------------------------------------------------------
 Additional term under GPL-3.0 section 7(e): the license does not grant rights
 to the name "SmartGauge Libre". See TRADEMARKS.md. Modified versions must use
-a different name.
+a different name; the "Based on SmartGauge Libre by khanatuch" credit above
+is the one allowed use of the name.
 
 GPL ไม่ได้ให้สิทธิ์ใช้ชื่อ "SmartGauge Libre" — ดู TRADEMARKS.md
 เวอร์ชันที่แก้ไขต้องใช้ชื่ออื่น
