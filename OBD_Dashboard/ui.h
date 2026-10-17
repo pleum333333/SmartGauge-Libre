@@ -1,5 +1,5 @@
 // SmartGauge Libre — Copyright (c) 2026 khanatuch — code written by khanatuch & Claude (AI)
-// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Dashboard UI for 480x272, dark "neon" theme. Three page kinds:
 //   GAUGE : segmented RPM arc + speed (left), 6 value cards (right)
 //   GRID  : 8 value cards (4x2)
@@ -510,5 +510,5 @@ static void drawSplash(LGFX &lcd) {
   lcd.setTextColor(MUTED);
   lcd.drawString(PROJECT_URL "   v" PROJECT_VERSION, cx, 206);
   lcd.setTextColor(CYAN);
-  lcd.drawString("CC BY-NC-SA 4.0 - free, not for sale", cx, 250);
+  lcd.drawString("GPL-3.0 - free & open source", cx, 250);
 }

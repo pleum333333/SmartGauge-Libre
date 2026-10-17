@@ -1,5 +1,5 @@
 // SmartGauge Libre — Copyright (c) 2026 khanatuch — code written by khanatuch & Claude (AI)
-// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+// SPDX-License-Identifier: GPL-3.0-or-later
 // 0-100 km/h and 100-0 km/h (braking) timer, driven by OBD speed samples.
 //
 // OBD speed comes in whole km/h at whatever rate the adapter manages (~5-15 Hz

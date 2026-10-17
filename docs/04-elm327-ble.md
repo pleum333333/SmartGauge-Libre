@@ -1,6 +1,6 @@
 # 04 · ELM327 ผ่าน Bluetooth LE
 
-โค้ดอยู่ใน [`elm327_ble.h`](../OBD_Dashboard/elm327_ble.h) — ใช้ไลบรารี BLE ที่มากับ Arduino-ESP32 (Bluedroid)
+โค้ดอยู่ใน [`elm327_ble.h`](../OBD_Dashboard/elm327_ble.h) — ใช้ไลบรารี BLE ที่มากับ Arduino-ESP32 (core 3.3.10 บน ESP32-S3 ใช้สแตก NimBLE ไม่ใช่ Bluedroid — `CONFIG_BT_NIMBLE_ENABLED=y`)
 
 ## 1. หา dongle
 

@@ -1,5 +1,5 @@
 // SmartGauge Libre — Copyright (c) 2026 khanatuch — code written by khanatuch & Claude (AI)
-// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Trip computer: two trips (A and B) that both accumulate from every speed sample,
 // so B can run across several A resets (e.g. A = today, B = since refuel).
 //

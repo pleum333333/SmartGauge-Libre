@@ -1,5 +1,5 @@
 // SmartGauge Libre — Copyright (c) 2026 khanatuch — code written by khanatuch & Claude (AI)
-// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+// SPDX-License-Identifier: GPL-3.0-or-later
 // SAE J1979 mode 01 PIDs that decode to one number: value = raw * mul + add,
 // where raw is A (1 byte), A*256+B (2 bytes) or that as int16 (sgn).
 // Units starting with '*' get a drawn degree sign ("*C" -> °C).

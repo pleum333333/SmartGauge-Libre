@@ -1,5 +1,5 @@
 // SmartGauge Libre — Copyright (c) 2026 khanatuch — code written by khanatuch & Claude (AI)
-// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Per-PID low/high alarms. Limits live in NVS (namespace "alarms", one blob per
 // PID) so they survive power-off; PIDs without a stored entry use DEFAULTS.
 //

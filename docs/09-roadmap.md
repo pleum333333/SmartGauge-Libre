@@ -116,5 +116,10 @@
 | [kotchasaan/Ford-OBD2-Smart-Gauge-Technical-Summary](https://github.com/kotchasaan/Ford-OBD2-Smart-Gauge-Technical-Summary) | นักพัฒนาไทย, Ranger, ใช้บอร์ดตระกูลเดียวกับเรา | ไม่มีไฟล์ไลเซนส์ |
 | [muki01/OBD2_CAN_Bus_Library](https://github.com/muki01/OBD2_CAN_Bus_Library) | ต่อ CAN ตรงไม่ผ่าน ELM | GPL-3.0 |
 
-> ⚠️ **กติกาการหยิบโค้ด:** ใช้โปรเจกต์ที่ห้ามขายหรือไม่มีไฟล์ไลเซนส์ **เป็นไอเดียเท่านั้น ห้ามคัดลอกโค้ด**
-> โค้ด MIT หยิบได้ (ต้องคงประกาศลิขสิทธิ์เดิมไว้) ส่วน GPL-3.0 ใช้ร่วมกับไลเซนส์ห้ามขายของเราไม่ได้ ห้ามคัดลอกเข้ามา
+คอลัมน์ "ไลเซนส์" บอกว่าเอาโค้ดมารวมกับโปรเจกต์เรา (GPL-3.0-or-later) ได้ไหม:
+MIT / GPL-3.0 = เอามาได้ · Commons Clause / "MIT No Commercial Use" / PolyForm Noncommercial / ไม่มีไฟล์ไลเซนส์ = ไอเดียเท่านั้น
+
+> ⚠️ **กติกาการหยิบโค้ด:** โปรเจกต์ที่ห้ามขาย (Commons Clause, PolyForm NC, "MIT No Commercial Use") หรือไม่มีไฟล์ไลเซนส์
+> ใช้ **เป็นไอเดียเท่านั้น ห้ามคัดลอกโค้ด** — เขียนใหม่เอง
+> โค้ด MIT / BSD / Apache-2.0 และ GPL-3.0 / LGPL / AGPL-3.0 หยิบได้ ต้องคงประกาศลิขสิทธิ์และหัวไฟล์เดิมไว้ และบอกที่มาใน PR
+> (GPL-2.0-only ใช้ไม่ได้) ดูรายละเอียดใน [10-licensing.md](10-licensing.md)

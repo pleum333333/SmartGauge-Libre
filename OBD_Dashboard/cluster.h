@@ -1,5 +1,5 @@
 // SmartGauge Libre — Copyright (c) 2026 khanatuch — code written by khanatuch & Claude (AI)
-// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Supercar-style instrument cluster page (480x246 below the status bar):
 //   centre: magenta speedometer 0-240 km/h over 240 deg, needle + digital speed
 //   left  : blue tach half-dial (needle sweeps the left half)

@@ -1,5 +1,5 @@
 // SmartGauge Libre — Copyright (c) 2026 khanatuch — code written by khanatuch & Claude (AI)
-// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+// SPDX-License-Identifier: GPL-3.0-or-later
 // ELM327 over BLE: scan, connect, auto-detect the UART-like service, AT/OBD commands.
 // Most BLE OBD dongles expose FFF0 (FFF1 notify / FFF2 write), FFE0 (FFE1 both)
 // or 18F0 (2AF0 notify / 2AF1 write). Rather than hard-coding one, we pick the first

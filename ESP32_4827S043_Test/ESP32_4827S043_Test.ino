@@ -1,5 +1,5 @@
 // SmartGauge Libre — Copyright (c) 2026 khanatuch — code written by khanatuch & Claude (AI)
-// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Hardware test for Sunton ESP32-4827S043 (ESP32-S3, 4.3" 480x272 RGB565 panel)
 // Tests: chip/PSRAM/flash info, display colors + gradient + fill-rate,
 //        backlight PWM, touch (GT911 capacitive, auto-detected), microSD card.

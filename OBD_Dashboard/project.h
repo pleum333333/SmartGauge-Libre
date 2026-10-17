@@ -1,5 +1,5 @@
 // SmartGauge Libre — Copyright (c) 2026 khanatuch — code written by khanatuch & Claude (AI)
-// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Project identity shown on the boot screen and in the serial log.
 // Keep the credit line when you fork or modify this project (see NOTICE).
 #pragma once

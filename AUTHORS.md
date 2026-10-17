@@ -9,6 +9,7 @@ SmartGauge Libre — **code written by khanatuch & Claude (AI)**
 
 ผู้ถือลิขสิทธิ์ (copyright holder) คือ **khanatuch** — AI ถือลิขสิทธิ์เองไม่ได้ตามกฎหมาย จึงใส่ไว้เป็นเครดิตผู้ร่วมเขียน
 (ดูเหตุผลเรื่องลิขสิทธิ์กับโค้ดที่ AI ช่วยเขียนใน [docs/10-licensing.md](docs/10-licensing.md))
+โปรเจกต์ใช้ไลเซนส์ **GPL-3.0-or-later** — ผู้ร่วมพัฒนายังคงลิขสิทธิ์ในโค้ดของตัวเอง และส่งโค้ดเข้ามาภายใต้ GPL-3.0-or-later (ดู [CONTRIBUTING.md](CONTRIBUTING.md))
 
 ## ผู้ร่วมพัฒนา (Contributors)
 

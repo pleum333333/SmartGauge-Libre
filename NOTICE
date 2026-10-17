@@ -3,48 +3,68 @@ Copyright (c) 2026 khanatuch
 Code written by khanatuch & Claude (AI)
 Original source: https://github.com/khanatuch/SmartGauge-Libre
 
-Licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0
-International License (CC BY-NC-SA 4.0). See the LICENSE file or
-https://creativecommons.org/licenses/by-nc-sa/4.0/
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version (SPDX: GPL-3.0-or-later).
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the LICENSE file or
+https://www.gnu.org/licenses/gpl-3.0.html for details.
 
 -------------------------------------------------------------------------------
 REQUIRED ATTRIBUTION  /  การให้เครดิตที่ต้องคงไว้
 -------------------------------------------------------------------------------
-If you share this project or anything made from it (source code, firmware
-binaries, modified versions, screenshots in a product listing, videos, ...),
-you must keep this credit visible:
+Additional term under GPL-3.0 section 7(b): if you convey this project or a
+work based on it (source code, firmware binaries, flashed boards, modified
+versions), you must keep this author attribution:
 
     Based on "SmartGauge Libre" by khanatuch
     (code written by khanatuch & Claude (AI))
     https://github.com/khanatuch/SmartGauge-Libre
-    Licensed CC BY-NC-SA 4.0 — changes made: <describe your changes>
+    Licensed GPL-3.0-or-later — changes made: <describe your changes>
 
-The firmware shows the same credit on its boot screen. Removing or hiding the
-boot-screen credit in a shared build does not give reasonable attribution.
+The firmware shows this credit on its boot screen (its Appropriate Legal
+Notices). Keep that boot-screen credit in builds you share.
 
 ถ้าเผยแพร่โปรเจกต์นี้หรือสิ่งที่ดัดแปลงจากโปรเจกต์นี้ (ซอร์สโค้ด ไฟล์เฟิร์มแวร์
-เวอร์ชันที่แก้ไข ภาพหน้าจอในประกาศขาย คลิป ฯลฯ) ต้องคงข้อความเครดิตด้านบนไว้
-และห้ามลบหรือซ่อนเครดิตบนหน้าจอตอนเปิดเครื่อง
+บอร์ดที่แฟลชแล้ว เวอร์ชันที่แก้ไข) ต้องคงข้อความเครดิตด้านบนไว้
+และห้ามลบเครดิตบนหน้าจอตอนเปิดเครื่อง
 
 -------------------------------------------------------------------------------
-NO COMMERCIAL USE  /  ห้ามใช้เชิงพาณิชย์
+SELLING IS ALLOWED, WITH SOURCE  /  ขายได้ แต่ต้องให้ซอร์สโค้ด
 -------------------------------------------------------------------------------
-You may not sell this project or anything derived from it: no selling the
-firmware, flashed boards, "smart gauge" kits, code, or installation of it as a
-paid product or service. For any commercial use, ask khanatuch for written
-permission first.
+You may sell this project or things built from it (firmware, flashed boards,
+kits, installation). Whoever receives it must also get the complete
+corresponding source code under GPL-3.0-or-later, with no extra restrictions
+(GPL-3.0 sections 4-6).
 
-ห้ามขายโปรเจกต์นี้หรือสิ่งที่ดัดแปลงจากโปรเจกต์นี้ ไม่ว่าจะเป็นเฟิร์มแวร์ บอร์ดที่แฟลชแล้ว
-ชุดสมาร์ทเกจ โค้ด หรือบริการติดตั้งแบบคิดเงิน ถ้าต้องการใช้เชิงพาณิชย์ต้องขออนุญาต
-khanatuch เป็นลายลักษณ์อักษรก่อน
+ขายได้ (เฟิร์มแวร์ บอร์ดที่แฟลชแล้ว ชุดคิต บริการติดตั้ง) แต่ผู้ซื้อต้องได้ซอร์สโค้ดเต็ม
+ของเวอร์ชันนั้นภายใต้ GPL-3.0-or-later และห้ามเพิ่มเงื่อนไขจำกัดสิทธิ์
 
 -------------------------------------------------------------------------------
-SHARE ALIKE  /  แก้แล้วต้องเปิดด้วยเงื่อนไขเดียวกัน
+NAME  /  ชื่อโปรเจกต์
 -------------------------------------------------------------------------------
-If you share a modified version, it must be under CC BY-NC-SA 4.0 as well.
-We also ask (request, see CONTRIBUTING.md) that you publish the full source
-code of your changes and send improvements back as a pull request, so the
-project keeps improving in one place.
+Additional term under GPL-3.0 section 7(e): the license does not grant rights
+to the name "SmartGauge Libre". See TRADEMARKS.md. Modified versions must use
+a different name.
+
+GPL ไม่ได้ให้สิทธิ์ใช้ชื่อ "SmartGauge Libre" — ดู TRADEMARKS.md
+เวอร์ชันที่แก้ไขต้องใช้ชื่ออื่น
+
+-------------------------------------------------------------------------------
+PLEASE SEND IMPROVEMENTS BACK  /  ขอให้ส่งการแก้ไขกลับมา
+-------------------------------------------------------------------------------
+We ask (a request, not a license condition; see CONTRIBUTING.md) that you send
+improvements back as a pull request, so the project keeps improving in one
+place.
+
+-------------------------------------------------------------------------------
+EARLIER COPIES
+-------------------------------------------------------------------------------
+Copies distributed before this change under CC BY-NC-SA 4.0 stay under that
+license for the people who received them.
 
 -------------------------------------------------------------------------------
 THIRD-PARTY COMPONENTS

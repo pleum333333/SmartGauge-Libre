@@ -1,5 +1,5 @@
 # SmartGauge Libre — Copyright (c) 2026 khanatuch — code written by khanatuch & Claude (AI)
-# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Grab a screenshot from the dashboard over USB serial and save it as PNG.
 
 Usage:

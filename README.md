@@ -3,7 +3,7 @@
 **เกจ OBD-II ฟรี สำหรับรถยนต์ — ESP32-S3 + จอสัมผัส 4.3" + ELM327 Bluetooth LE**
 *Free OBD-II car gauge for ESP32-S3 with a 4.3" touchscreen and an ELM327 BLE adapter.*
 
-code written by **khanatuch & Claude (AI)** · ไลเซนส์ [CC BY-NC-SA 4.0](LICENSE) — **ห้ามขาย ต้องให้เครดิต แก้แล้วต้องเปิดด้วยเงื่อนไขเดียวกัน**
+code written by **khanatuch & Claude (AI)** · ไลเซนส์ [GPL-3.0-or-later](LICENSE) — **ฟรีและโอเพนซอร์ส ต้องให้เครดิต แจกหรือขายต่อต้องให้ซอร์สโค้ดเต็ม**
 
 | | |
 |---|---|
@@ -67,10 +67,10 @@ arduino-cli compile --fqbn esp32:esp32:esp32s3:PSRAM=opi,FlashSize=16M,Partition
 
 ## ไลเซนส์
 
-[CC BY-NC-SA 4.0](LICENSE) — ใช้ แก้ แจกได้ฟรี **แต่ห้ามขาย** ต้องให้เครดิตตาม [NOTICE](NOTICE) และเวอร์ชันที่แก้ต้องใช้ไลเซนส์เดียวกัน
+[GPL-3.0-or-later](LICENSE) — ใช้ แก้ แจกได้ฟรี **ขายได้ แต่ผู้ซื้อต้องได้ซอร์สโค้ดเต็ม** ต้องให้เครดิตตาม [NOTICE](NOTICE) และเวอร์ชันที่แก้ต้องใช้ GPL-3.0 เหมือนกัน
 ไลบรารีที่ใช้มีไลเซนส์ของตัวเอง — [THIRD_PARTY_LICENSES](THIRD_PARTY_LICENSES.md) · ชื่อโปรเจกต์ — [TRADEMARKS](TRADEMARKS.md)
 
-> เพราะห้ามใช้เชิงพาณิชย์ โปรเจกต์นี้จึงเป็น **source-available** ไม่ใช่ "open source" ตามนิยามของ OSI — เราบอกตรง ๆ
-> อยากใช้เชิงพาณิชย์ ติดต่อ khanatuch ก่อน
+> เป็น **open source** ตามนิยามของ OSI — เปลี่ยนจาก CC BY-NC-SA 4.0 เมื่อ 17 ต.ค. 2026 (สำเนาเก่าที่แจกไปแล้วยังเป็นไลเซนส์เดิม)
+> ชื่อ "SmartGauge Libre" ห้ามใช้กับ fork หรือสินค้า — ดู [TRADEMARKS](TRADEMARKS.md) และ [docs/10-licensing.md](docs/10-licensing.md)
 
 ผู้ร่วมสร้าง: [AUTHORS](AUTHORS.md)
