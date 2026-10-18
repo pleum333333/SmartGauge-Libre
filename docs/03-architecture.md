@@ -15,6 +15,7 @@ OBD_Dashboard/
 ├── trip.h              trip computer A/B (คำนวณ + หน้าจอ), เก็บใน NVS
 ├── launch.h            จับเวลา 0–100 / 100–0 (คำนวณ + หน้าจอ)
 ├── health.h            หน้า HEALTH: สรุปต่อทริป, baseline, เขียว/เหลือง/แดง (เก็บ NVS)
+├── moto.h              หน้า SCOOTER + BLUE LCD สไตล์หน้าปัดมอเตอร์ไซค์ (ตัวเลข 7-segment วาดเอง)
 └── cluster.h           หน้าปัดเข็ม — ถอดออกจากรอบหน้าแล้ว (ไม่ได้ include) เก็บไว้เผื่อนำกลับมา
 ESP32_4827S043_Test/    เฟิร์มแวร์ทดสอบฮาร์ดแวร์แยกต่างหาก
 ```
@@ -63,7 +64,9 @@ ESP32_4827S043_Test/    เฟิร์มแวร์ทดสอบฮาร�
 | 2 | `GAUGE` tach + 6 การ์ด | `ui.h` | RPM + speed ทุกรอบ, วนอ่าน 6 ค่าหลัก |
 | 3 | `TRIP` trip A / B | `trip.h` | RPM + speed ทุกรอบ |
 | 4 | `TIMER` 0–100 / 100–0 | `launch.h` | ปกติ RPM + speed; กด ARM แล้ว **อ่านแค่ `010D`** (ไม่มีงานพื้นหลัง) |
-| 5 … n-3 | `GRID` 8 การ์ด/หน้า | `ui.h` | วนอ่าน 8 ค่าในหน้านั้น |
+| 5 | `SCOOTER` จอ LCD สกู๊ตเตอร์ไฟฟ้า (ฟ้าอมเขียว แถบความเร็วขั้นบันได) | `moto.h` | RPM + speed ทุกรอบ, วนอ่าน coolant / battery / fuel |
+| 6 | `BLUE_LCD` จอ LCD น้ำเงินสไตล์สกู๊ตเตอร์ 160cc | `moto.h` | RPM + speed ทุกรอบ, วนอ่าน MAF (ถี่เป็นสองเท่า) / fuel rate / coolant / battery / fuel / run time / oil |
+| 7 … n-3 | `GRID` 8 การ์ด/หน้า | `ui.h` | วนอ่าน 8 ค่าในหน้านั้น |
 | n-2 | `HEALTH` สัญญาณเตือนล่วงหน้า | `health.h` | แบต / น้ำ / LTFT 1-2 / O2 หน้า-หลัง / RPM |
 | n-1 | `DTC` | `ui.h` | `0101` + `03` + `07` ตอนเข้าหน้า และตอนกด RESCAN |
 
@@ -74,6 +77,7 @@ ESP32_4827S043_Test/    เฟิร์มแวร์ทดสอบฮาร�
 ![RACE](images/page-race.png) ![DIGITAL](images/page-digital.png)
 ![GAUGE](images/page-tach.png) ![TRIP](images/page-trip.png)
 ![TIMER](images/page-timer.png) ![GRID](images/page-grid.png)
+![SCOOTER](images/page-scooter.png) ![BLUE LCD](images/page-blue-lcd.png)
 ![DTC](images/page-dtc.png) ![ALARM](images/alarm-card.png)
 
 - หน้า GRID สร้างอัตโนมัติจาก PID ที่ **รถคันนั้นรองรับจริง** (`buildPages()` หลังเข้า `Live`)

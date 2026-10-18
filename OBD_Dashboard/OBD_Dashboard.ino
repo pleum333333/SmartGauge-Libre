@@ -4,7 +4,7 @@
 // Uses the ESP32-S3's built-in BLE; no extra hardware.
 //
 // Pages: race, digital, tach + 6 main values, trip computer,
-// 0-100 / 100-0 timer, then every PID the car supports (8 per page), last =
+// 0-100 / 100-0 timer, two motorbike-style LCDs, then every PID the car supports (8 per page), last =
 // trouble codes. Tap the right side of the screen for the next page, the left
 // edge for the previous one; long-press (0.7 s) resets the thing under the finger
 // (boost peak, trip A/B, timer results). DEMO button (top right) shows simulated
@@ -27,6 +27,7 @@
 #include "trip.h"
 #include "launch.h"
 #include "health.h"
+#include "moto.h"
 
 static const int BACKLIGHT = 90;  // 0..255; full brightness draws a lot more current
 
@@ -36,6 +37,8 @@ static RacePage racePage(lcd);
 static DigitalPage digitalPage(lcd);
 static TripPage tripPage(lcd);
 static TimerPage timerPage(lcd);
+static ScooterPage scooterPage(lcd);
+static BlueLcdPage blueLcdPage(lcd);
 static TripComputer realTrip(true), demoTrip(false);  // demo km never touch the saved trips
 static LaunchTimer launch;
 static health::Monitor realHealth(true), demoHealth(false);  // demo shows a canned history
@@ -75,9 +78,10 @@ static int mainIdx[Dashboard::GAUGE_CARDS];
 static int rpmIdx, speedIdx, coolIdx, ignIdx, fuelIdx, battIdx, oilIdx;
 static int mapIdx, baroIdx, intakeIdx, loadIdx, throttleIdx, lambdaIdx, lambdaCmdIdx;
 static int ltft1Idx, ltft2Idx, o2FrontIdx, o2RearIdx;
+static int runIdx, mafIdx, fuelRateIdx;
 
 // Fixed pages before the per-PID grid pages.
-enum { PAGE_RACE, PAGE_DIGITAL, PAGE_GAUGE, PAGE_TRIP, PAGE_TIMER, FIXED_PAGES };
+enum { PAGE_RACE, PAGE_DIGITAL, PAGE_GAUGE, PAGE_TRIP, PAGE_TIMER, PAGE_SCOOTER, PAGE_BLUE_LCD, FIXED_PAGES };
 
 static int gridIdx[NPIDS];
 static int gridCount = 0;
@@ -137,6 +141,16 @@ static void showPage(int p) {
     dash.showPage(Dashboard::TIMER, nullptr, 0);
     timerPage.show();
     setTimerPoll();
+  } else if (page == PAGE_SCOOTER) {
+    dash.showPage(Dashboard::SCOOTER, nullptr, 0);
+    scooterPage.show();
+    int idx[] = {coolIdx, battIdx, fuelIdx};
+    setPoll(idx, 3, true);
+  } else if (page == PAGE_BLUE_LCD) {
+    dash.showPage(Dashboard::BLUE_LCD, nullptr, 0);
+    blueLcdPage.show();
+    int idx[] = {mafIdx, fuelRateIdx, coolIdx, battIdx, mafIdx, fuelIdx, runIdx, oilIdx};
+    setPoll(idx, 8, true);
   } else if (page == healthPage()) {
     dash.showPage(Dashboard::HEALTH, nullptr, 0);
     healthView.show();
@@ -354,6 +368,7 @@ static void simulate() {
   pidValues[mapIdx] = 95 + 110 * k * k;  // ~1.0 bar boost at the top of each pull
   pidValues[baroIdx] = 101;
   pidValues[lambdaIdx] = 1.0f - 0.18f * k * k;
+  pidValues[runIdx] = millis() / 1000;  // engine "running" since boot
   if (dtcWanted) {
     dtcWanted = false;
     Locked l;
@@ -534,6 +549,34 @@ static void render() {
     }
     case Dashboard::TRIP: tripPage.update(trip()); break;
     case Dashboard::TIMER: timerPage.update(launch, pidValues[speedIdx], now); break;
+    case Dashboard::SCOOTER: {
+      bool mil;
+      {
+        Locked l;
+        mil = dtc.valid && dtc.mil;
+      }
+      scooterPage.update({pidValues[speedIdx], pidValues[rpmIdx], pidValues[coolIdx], pidValues[battIdx],
+                          pidValues[fuelIdx], (float)trip().trip[0].km, alarms::on(coolIdx), alarms::on(battIdx),
+                          alarms::on(fuelIdx), mil});
+      break;
+    }
+    case Dashboard::BLUE_LCD: {
+      bool mil, codes;
+      {
+        Locked l;
+        mil = dtc.valid && dtc.mil;
+        codes = dtc.valid && (dtc.mil || !dtc.stored.empty());
+      }
+      health::Status hs = healthMon().worst();
+      int hl = hs == health::BAD ? 2 : hs == health::WARN ? 1 : 0;
+      // no run-time PID: engine-on time of trip A instead
+      float run = !isnan(pidValues[runIdx]) ? pidValues[runIdx] : trip().trip[0].driveS + trip().trip[0].idleS;
+      blueLcdPage.update({pidValues[speedIdx], pidValues[rpmIdx], run, pidValues[mafIdx], pidValues[fuelRateIdx],
+                          pidValues[fuelIdx], (float)trip().trip[1].km, pidValues[coolIdx], pidValues[battIdx],
+                          codes || hl > 0, demo || live(), alarms::on(coolIdx), alarms::on(battIdx),
+                          alarms::on(fuelIdx), alarms::on(oilIdx), mil, hl});
+      break;
+    }
     case Dashboard::GAUGE: dash.updateGauge(rpmIdx, speedIdx); break;
     case Dashboard::GRID: dash.updateCards(); break;
     case Dashboard::HEALTH: {
@@ -578,6 +621,9 @@ void setup() {
   ltft2Idx = pidIndex(0x09);
   o2FrontIdx = pidIndex(0x14);
   o2RearIdx = pidIndex(0x15);
+  runIdx = pidIndex(0x1F);
+  mafIdx = pidIndex(0x10);
+  fuelRateIdx = pidIndex(0x5E);
   for (int i = 0; i < Dashboard::GAUGE_CARDS; i++) mainIdx[i] = pidIndex(MAIN_PIDS[i]);
   clearPidValues();
   alarms::load();
@@ -597,6 +643,8 @@ void setup() {
   digitalPage.begin();
   tripPage.begin();
   timerPage.begin();
+  scooterPage.begin();
+  blueLcdPage.begin();
   healthView.begin();
   while (millis() - splashAt < 1800) delay(10);
   buildPages();
