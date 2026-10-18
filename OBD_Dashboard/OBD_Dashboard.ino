@@ -4,7 +4,7 @@
 // Uses the ESP32-S3's built-in BLE; no extra hardware.
 //
 // Pages: race, digital, tach + 6 main values, trip computer,
-// 0-100 / 100-0 timer, two motorbike-style LCDs, then every PID the car supports (8 per page), last =
+// 0-100 / 100-0 timer, two motorbike-style LCDs, phone navigation hints, then every PID the car supports (8 per page), last =
 // trouble codes. Tap the right side of the screen for the next page, the left
 // edge for the previous one; long-press (0.7 s) resets the thing under the finger
 // (boost peak, trip A/B, timer results). DEMO button (top right) shows simulated
@@ -28,8 +28,12 @@
 #include "launch.h"
 #include "health.h"
 #include "moto.h"
+#include "nav.h"
 
 static const int BACKLIGHT = 90;  // 0..255; full brightness draws a lot more current
+// Internal RAM kept free for BLE while page sprites are created: a phone link next to the
+// ELM327 needs a few KB per connection, and sprites fall back to PSRAM when internal is short.
+static const size_t BLE_HEAP_RESERVE = 32 * 1024;
 
 static LGFX lcd;
 static Dashboard dash(lcd);
@@ -39,6 +43,8 @@ static TripPage tripPage(lcd);
 static TimerPage timerPage(lcd);
 static ScooterPage scooterPage(lcd);
 static BlueLcdPage blueLcdPage(lcd);
+static nav::Page navPage(lcd);
+static nav::Tracker navTrack;
 static TripComputer realTrip(true), demoTrip(false);  // demo km never touch the saved trips
 static LaunchTimer launch;
 static health::Monitor realHealth(true), demoHealth(false);  // demo shows a canned history
@@ -81,7 +87,7 @@ static int ltft1Idx, ltft2Idx, o2FrontIdx, o2RearIdx;
 static int runIdx, mafIdx, fuelRateIdx;
 
 // Fixed pages before the per-PID grid pages.
-enum { PAGE_RACE, PAGE_DIGITAL, PAGE_GAUGE, PAGE_TRIP, PAGE_TIMER, PAGE_SCOOTER, PAGE_BLUE_LCD, FIXED_PAGES };
+enum { PAGE_RACE, PAGE_DIGITAL, PAGE_GAUGE, PAGE_TRIP, PAGE_TIMER, PAGE_SCOOTER, PAGE_BLUE_LCD, PAGE_NAV, FIXED_PAGES };
 
 static int gridIdx[NPIDS];
 static int gridCount = 0;
@@ -151,6 +157,10 @@ static void showPage(int p) {
     blueLcdPage.show();
     int idx[] = {mafIdx, fuelRateIdx, coolIdx, battIdx, mafIdx, fuelIdx, runIdx, oilIdx};
     setPoll(idx, 8, true);
+  } else if (page == PAGE_NAV) {
+    dash.showPage(Dashboard::NAV, nullptr, 0);
+    navPage.show();
+    setPoll(nullptr, 0, true);
   } else if (page == healthPage()) {
     dash.showPage(Dashboard::HEALTH, nullptr, 0);
     healthView.show();
@@ -369,6 +379,7 @@ static void simulate() {
   pidValues[baroIdx] = 101;
   pidValues[lambdaIdx] = 1.0f - 0.18f * k * k;
   pidValues[runIdx] = millis() / 1000;  // engine "running" since boot
+  nav::simulate(speedSample, millis());
   if (dtcWanted) {
     dtcWanted = false;
     Locked l;
@@ -390,6 +401,7 @@ static void setDemo(bool on) {
   demoTrip.begin();
   demoHealth.seedDemo();
   launch.clear();
+  if (!nav::phoneLinked) nav::apply("X", millis());  // drop the demo route
   {
     Locked l;
     dtc = DtcReport();
@@ -512,12 +524,18 @@ static void render() {
     msg = demo ? String("Simulated data") : statusMsg;
     dot = demo ? theme::AMBER : statusDot;
   }
+  nav::State nv = nav::snapshot();
+  navTrack.tick(pidValues[speedIdx], now, nv.rxMs);
+  String navHint = page == PAGE_NAV ? String("") : nav::hint(nv, navTrack.travelled, demo, now);
   int al = alarms::first();
   if (al >= 0) {  // an alarm wins the status line on every page
     const PidDef &d = PIDS[al];
     msg = String(d.label) + " " + String(pidValues[al], (unsigned int)d.decimals) + " " + (d.unit[0] == '*' ? d.unit + 1 : d.unit);
     dot = theme::RED;
     msgColor = theme::RED;
+  } else if (navHint.length()) {  // a turn is coming up: say so on every page
+    msg = navHint;
+    dot = msgColor = theme::CYAN;
   } else if ((int32_t)(healthNoticeUntil - now) > 0 && page != healthPage()) {
     msg = "HEALTH: see page";
     dot = msgColor = healthMon().worst() == health::BAD ? theme::RED : theme::AMBER;
@@ -577,6 +595,7 @@ static void render() {
                           alarms::on(fuelIdx), alarms::on(oilIdx), mil, hl});
       break;
     }
+    case Dashboard::NAV: navPage.update(nv, navTrack.travelled, pidValues[speedIdx], nav::phoneLinked, demo); break;
     case Dashboard::GAUGE: dash.updateGauge(rpmIdx, speedIdx); break;
     case Dashboard::GRID: dash.updateCards(); break;
     case Dashboard::HEALTH: {
@@ -601,6 +620,7 @@ void setup() {
   // Bring the radio up before the backlight: BLE calibration + full backlight
   // at the same moment browns out the board on a weak USB port.
   elm.begin();
+  nav::beginServer();  // phone link for turn hints, next to the ELM327 client
   Serial.println("BLE ok");
 
   rpmIdx = pidIndex(0x0C);
@@ -638,6 +658,7 @@ void setup() {
   for (int b = 0; b <= BACKLIGHT; b += 10) { lcd.setBrightness(b); delay(10); }
   uint32_t splashAt = millis();
   touch::begin();
+  void *bleReserve = heap_caps_malloc(BLE_HEAP_RESERVE, MALLOC_CAP_INTERNAL);
   dash.begin();
   racePage.begin();
   digitalPage.begin();
@@ -645,7 +666,9 @@ void setup() {
   timerPage.begin();
   scooterPage.begin();
   blueLcdPage.begin();
+  navPage.begin();
   healthView.begin();
+  free(bleReserve);
   while (millis() - splashAt < 1800) delay(10);
   buildPages();
   render();
@@ -682,7 +705,8 @@ static void limitCommand(String a) {
 }
 
 // Serial debug commands (115200):  S = screenshot, D = toggle demo, N / P = next / previous page,
-// R = reset (boost peak / trip A / timer results), B = reset trip B, A = arm timer, L... = alarm limits.
+// R = reset (boost peak / trip A / timer results), B = reset trip B, A = arm timer, L... = alarm limits,
+// V... = navigation hint ("VN|left|300|14:32|Rama IV Rd", "VX" = end).
 // Screenshot format: line "SHOT <w> <h>\n" then w*h RGB565 pixels, high byte first, row by row.
 // tools/screenshot.py turns it into a PNG.
 static void handleSerial() {
@@ -708,6 +732,14 @@ static void handleSerial() {
     case 'B': resetCurrent(1); break;
     case 'A': if (page == PAGE_TIMER) toggleArm(); break;
     case 'L': limitCommand(Serial.readStringUntil('\n')); break;
+    case 'H':
+      Serial.printf("heap: internal free %u (min %u, largest %u), PSRAM free %u\n",
+                    heap_caps_get_free_size(MALLOC_CAP_INTERNAL), heap_caps_get_minimum_free_size(MALLOC_CAP_INTERNAL),
+                    heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL), ESP.getFreePsram());
+      Serial.printf("nav: phone %s, last write %d s ago\n", nav::phoneLinked ? "linked" : "not linked",
+                    nav::lastPhoneRx ? (int)((millis() - nav::lastPhoneRx) / 1000) : -1);
+      break;
+    case 'V': nav::apply(Serial.readStringUntil('\n'), millis()); break;  // same text as the NAV characteristic
   }
 }
 
