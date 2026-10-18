@@ -29,6 +29,7 @@
 #include "health.h"
 #include "moto.h"
 #include "nav.h"
+#include "service.h"
 
 static const int BACKLIGHT = 90;  // 0..255; full brightness draws a lot more current
 // Internal RAM kept free for BLE while page sprites are created: a phone link next to the
@@ -49,6 +50,7 @@ static TripComputer realTrip(true), demoTrip(false);  // demo km never touch the
 static LaunchTimer launch;
 static health::Monitor realHealth(true), demoHealth(false);  // demo shows a canned history
 static health::Page healthView(lcd);
+static service::Page serviceView(lcd);
 static uint32_t healthNoticeUntil = 0;
 static float boostPeak = NAN;
 static Elm327Ble elm;
@@ -103,7 +105,8 @@ static bool available(uint8_t pid) {
 }
 
 static int gridPages() { return (gridCount + Dashboard::GRID_CARDS - 1) / Dashboard::GRID_CARDS; }
-static int pageCount() { return FIXED_PAGES + gridPages() + 2; }
+static int pageCount() { return FIXED_PAGES + gridPages() + 3; }
+static int servicePage() { return pageCount() - 3; }
 static int healthPage() { return pageCount() - 2; }
 static int dtcPage() { return pageCount() - 1; }
 
@@ -161,6 +164,11 @@ static void showPage(int p) {
     dash.showPage(Dashboard::NAV, nullptr, 0);
     navPage.show();
     setPoll(nullptr, 0, true);
+  } else if (page == servicePage()) {
+    dash.showPage(Dashboard::SERVICE, nullptr, 0);
+    serviceView.show();
+    int idx[] = {coolIdx, throttleIdx, battIdx};
+    setPoll(idx, 3, true);
   } else if (page == healthPage()) {
     dash.showPage(Dashboard::HEALTH, nullptr, 0);
     healthView.show();
@@ -431,6 +439,8 @@ static void onTap(int x, int y) {
     dtcWanted = true;
   } else if (page == PAGE_TIMER && TimerPage::isArmButton(x, y)) {
     toggleArm();
+  } else if (page == servicePage() && serviceView.tap(x, y, millis())) {
+    // handled by the SERVICE page (make buttons / BACK / START / NEXT)
   } else {
     showPage(x < 120 ? page - 1 : page + 1);
   }
@@ -598,6 +608,10 @@ static void render() {
     case Dashboard::NAV: navPage.update(nv, navTrack.travelled, pidValues[speedIdx], nav::phoneLinked, demo); break;
     case Dashboard::GAUGE: dash.updateGauge(rpmIdx, speedIdx); break;
     case Dashboard::GRID: dash.updateCards(); break;
+    case Dashboard::SERVICE:
+      serviceView.update({pidValues[rpmIdx], pidValues[coolIdx], pidValues[throttleIdx], pidValues[speedIdx],
+                          pidValues[battIdx]}, now);
+      break;
     case Dashboard::HEALTH: {
       Locked l;
       healthView.update(healthMon(), dtc, demo || live());
@@ -668,6 +682,7 @@ void setup() {
   blueLcdPage.begin();
   navPage.begin();
   healthView.begin();
+  serviceView.begin();
   free(bleReserve);
   while (millis() - splashAt < 1800) delay(10);
   buildPages();
@@ -731,6 +746,11 @@ static void handleSerial() {
     case 'R': resetCurrent(0); break;
     case 'B': resetCurrent(1); break;
     case 'A': if (page == PAGE_TIMER) toggleArm(); break;
+    case 'T': {  // "T240 150" = tap at (240,150), for testing pages with buttons
+      int x, y;
+      if (sscanf(Serial.readStringUntil('\n').c_str(), "%d %d", &x, &y) == 2) onTap(x, y);
+      break;
+    }
     case 'L': limitCommand(Serial.readStringUntil('\n')); break;
     case 'H':
       Serial.printf("heap: internal free %u (min %u, largest %u), PSRAM free %u\n",
