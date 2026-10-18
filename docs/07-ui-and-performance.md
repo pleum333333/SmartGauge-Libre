@@ -81,7 +81,7 @@
 | | **RUN** แทนนาฬิกา: เวลาเครื่องติด h:mm จาก PID 1F — รถไม่รองรับใช้เวลาขับ + เดินเบาของ trip A | run time |
 | | ป้าย **CHECK** (แทน OIL CHANGE): ติดเมื่อ MIL / มีโค้ด stored / HEALTH เหลืองหรือแดง | DTC, health |
 | | **AVG. km/L** เฉลี่ยตั้งแต่เปิดเครื่อง นับเฉพาะตอนเปิดหน้านี้ (MAF/fuel rate อ่านแค่หน้านี้) | MAF หรือ fuel rate |
-| | TRIP B km, WATER, โวลต์ | trip B, coolant, battery |
+| | TRIP B km, TEMP (น้ำ), โวลต์ | trip B, coolant, battery |
 | | ฝั่งซ้าย: แบต, ความร้อน, เครื่องยนต์, น้ำมันเครื่องร้อน · ฝั่งขวา: น้ำมันใกล้หมด, HEALTH (!), OK = ต่อ ECU อยู่, ลูกศรเปลี่ยนเกียร์ (≥ 6500 rpm) | alarms, health |
 
 - km/L ใช้สูตรเบนซิน: L/h = MAF × 3600 / 14.7 / 740 (ถ้ารถมี PID 5E fuel rate ใช้ค่านั้นแทน) — **รถดีเซลค่าจะผิด**
