@@ -74,30 +74,34 @@ struct Seg {
   float w, h, t;     // digit box and stroke
   float pitch, dotW; // advance per digit / per '.' or ':'
   float slant;       // px the top leans right
-  uint16_t on, off;  // lit / ghost colour
+  uint16_t on, off;  // lit / ghost colour (off = 0: unlit segments not drawn)
   bool hollow;       // lit segments drawn as outlines filled with `inner`
   uint16_t inner;
 };
 
+// Pointed ends (half the stroke) on big digits; thin strokes get short ends so a
+// small digit's segments stay bars instead of dots.
+static float tipOf(float t) { return t >= 8 ? t / 2 : t * 0.2f; }
+
 static void hseg(const Pen &p, float x0, float x1, float y, float t, uint16_t c) {
-  float h = t / 2;
-  if (x1 - x0 < t) return;
-  p.quad(x0 + h, y - h, x1 - h, y - h, x1 - h, y + h, x0 + h, y + h, c);
-  p.tri(x0, y, x0 + h, y - h, x0 + h, y + h, c);
-  p.tri(x1, y, x1 - h, y - h, x1 - h, y + h, c);
+  float h = t / 2, k = tipOf(t);
+  if (x1 - x0 < 2 * k + 1) return;
+  p.quad(x0 + k, y - h, x1 - k, y - h, x1 - k, y + h, x0 + k, y + h, c);
+  p.tri(x0, y, x0 + k, y - h, x0 + k, y + h, c);
+  p.tri(x1, y, x1 - k, y - h, x1 - k, y + h, c);
 }
 
 static void vseg(const Pen &p, float x, float y0, float y1, float t, uint16_t c) {
-  float h = t / 2;
-  if (y1 - y0 < t) return;
-  p.quad(x - h, y0 + h, x + h, y0 + h, x + h, y1 - h, x - h, y1 - h, c);
-  p.tri(x, y0, x - h, y0 + h, x + h, y0 + h, c);
-  p.tri(x, y1, x - h, y1 - h, x + h, y1 - h, c);
+  float h = t / 2, k = tipOf(t);
+  if (y1 - y0 < 2 * k + 1) return;
+  p.quad(x - h, y0 + k, x + h, y0 + k, x + h, y1 - k, x - h, y1 - k, c);
+  p.tri(x, y0, x - h, y0 + k, x + h, y0 + k, c);
+  p.tri(x, y1, x - h, y1 - k, x + h, y1 - k, c);
 }
 
 // One segment k (a..g = 0..6) of a digit at (x, y), shrunk by `in` px on every side.
 static void segment(const Pen &p, const Seg &s, float x, float y, int k, float in, uint16_t c) {
-  float g = max(1.0f, s.t * 0.15f) + in * 1.4f, t = s.t - 2 * in, h2 = s.t / 2, ym = y + s.h / 2;
+  float g = (s.t >= 8 ? max(1.0f, s.t * 0.15f) : 0.5f) + in * 1.4f, t = s.t - 2 * in, h2 = s.t / 2, ym = y + s.h / 2;
   switch (k) {
     case 0: hseg(p, x + g, x + s.w - g, y + h2, t, c); break;
     case 1: vseg(p, x + s.w - h2, y + h2 + g, ym - g, t, c); break;
@@ -112,10 +116,14 @@ static void segment(const Pen &p, const Seg &s, float x, float y, int k, float i
 static void digit(Pen p, const Seg &s, float x, float y, uint8_t bits) {
   p.shear = s.slant / s.h;
   p.baseY = y + s.h;
+  // ghosts first so they never cover the ends of lit segments
+  if (s.off)
+    for (int k = 0; k < 7; k++)
+      if (!(bits >> k & 1)) segment(p, s, x, y, k, 0, s.off);
   for (int k = 0; k < 7; k++) {
-    bool lit = bits >> k & 1;
-    segment(p, s, x, y, k, 0, lit ? s.on : s.off);
-    if (lit && s.hollow) segment(p, s, x, y, k, max(2.0f, s.t * 0.25f), s.inner);
+    if (!(bits >> k & 1)) continue;
+    segment(p, s, x, y, k, 0, s.on);
+    if (s.hollow) segment(p, s, x, y, k, max(2.0f, s.t * 0.25f), s.inner);
   }
 }
 
@@ -247,20 +255,20 @@ public:
     }
 
     char b[16];
-    if (isnan(in.speed)) strcpy(b, "   ");
+    if (isnan(in.speed)) strcpy(b, " --");
     else snprintf(b, sizeof b, "%3d", constrain((int)in.speed, 0, 999));
     value(0, b, SP_X - 4, SP_Y - 2, 190, 92, SPEED, SP_X, SP_Y);
-    if (isnan(in.coolant)) strcpy(b, "   ");
+    if (isnan(in.coolant)) strcpy(b, " --");
     else snprintf(b, sizeof b, "%3d", constrain((int)lroundf(in.coolant), -99, 999));
     Seg cs = SMALL;
     if (in.alarmCoolant) cs.on = RED_ON;
     value(1, b, 388, 100, 58, 30, cs, 388, 102);
-    if (isnan(in.battery)) strcpy(b, "  . ");
+    if (isnan(in.battery)) strcpy(b, "--.-");
     else snprintf(b, sizeof b, "%4.1f", constrain(in.battery, 0.0f, 99.9f));
     Seg bs = SMALL;
     if (in.alarmBattery) bs.on = RED_ON;
     value(2, b, 196, 188, 62, 28, bs, 200, 190);
-    if (isnan(in.tripKm)) strcpy(b, "    . ");
+    if (isnan(in.tripKm)) strcpy(b, "   -.-");
     else snprintf(b, sizeof b, "%6.1f", fmodf(in.tripKm, 10000));
     value(3, b, 286, 188, 98, 28, SMALL, 288, 190);
 
@@ -294,7 +302,7 @@ private:
   static constexpr float VX = 56, VB = 212, VT = 106, AX = 96, AY = 106, R = 40, TY = 66, TX = 452, BW = 18;
   static const int SP_X = 200, SP_Y = 84;
   static constexpr moto::Seg SPEED = {50, 88, 12, 60, 0, 10, YG, GHOST, false};
-  static constexpr moto::Seg SMALL = {13, 22, 4.5f, 17, 7, 3, CYAN_ON, GHOST_SMALL, false};
+  static constexpr moto::Seg SMALL = {13, 24, 3.5f, 17, 7, 3, CYAN_ON, GHOST_SMALL, false};
 
   LGFX &lcd;
   LGFX_Sprite bg;
@@ -411,9 +419,7 @@ private:
     p.unit("*C", 446, 118, &fonts::FreeSansBold9pt7b, CYAN_ON);
 
     // bottom line: orange step line, volts, trip A
-    bg.drawLine(176, 180 - Y0, 192, 182 - Y0, ORANGE_ON);
     bg.drawFastHLine(192, 182 - Y0, 270, ORANGE_ON);
-    bg.drawFastHLine(176, 181 - Y0, 2, ORANGE_ON);
     number(p, SMALL, "  . ", 200, 190);
     p.text("V", 258, 204, &fonts::FreeSansBold9pt7b, CYAN_ON, middle_left);
     number(p, SMALL, "    . ", 288, 190);
@@ -481,28 +487,28 @@ public:
     }
 
     char b[16];
-    if (isnan(in.speed)) strcpy(b, "   ");
+    if (isnan(in.speed)) strcpy(b, " --");
     else snprintf(b, sizeof b, "%3d", constrain((int)in.speed, 0, 999));
     value(0, b, 212, 38, 152, 86, SPEED, 216, 42);
-    if (isnan(in.runS)) strcpy(b, "  :  ");
+    if (isnan(in.runS)) strcpy(b, "--:--");
     else {
       uint32_t m = (uint32_t)in.runS / 60;
       snprintf(b, sizeof b, "%2u:%02u", (unsigned)(m / 60 % 100), (unsigned)(m % 60));
     }
     value(1, b, 122, 40, 84, 28, SMALL, 124, 42);
     float avg = avgKmL();
-    if (isnan(avg)) strcpy(b, "  . ");
+    if (isnan(avg)) strcpy(b, "--.-");
     else snprintf(b, sizeof b, "%4.1f", min(avg, 99.9f));
     value(2, b, 122, 188, 60, 28, SMALL, 124, 190);
-    if (isnan(in.tripKm)) strcpy(b, "    . ");
+    if (isnan(in.tripKm)) strcpy(b, "   -.-");
     else snprintf(b, sizeof b, "%6.1f", fmodf(in.tripKm, 10000));
     value(3, b, 244, 188, 92, 28, SMALL, 246, 190);
-    if (isnan(in.coolant)) strcpy(b, "   ");
+    if (isnan(in.coolant)) strcpy(b, " --");
     else snprintf(b, sizeof b, "%3d", constrain((int)lroundf(in.coolant), -99, 999));
     Seg cs = SMALL;
     if (in.alarmCoolant) cs.on = RED_ON;
     value(4, b, 186, 222, 56, 28, cs, 188, 224);
-    if (isnan(in.battery)) strcpy(b, "  . ");
+    if (isnan(in.battery)) strcpy(b, "--.-");
     else snprintf(b, sizeof b, "%4.1f", constrain(in.battery, 0.0f, 99.9f));
     Seg bs = SMALL;
     if (in.alarmBattery) bs.on = RED_ON;
@@ -525,12 +531,12 @@ private:
   static constexpr uint16_t BEZEL = rgb(14, 15, 18), POD = rgb(36, 38, 44), POD_EDGE = rgb(84, 86, 94);
   static constexpr uint16_t STRIP = rgb(40, 210, 90);
   static constexpr uint16_t LCD_TOP = rgb(50, 96, 196), LCD_BOTTOM = rgb(22, 46, 122), TINT = rgb(80, 130, 225);
-  static constexpr uint16_t GHOST = rgb(54, 90, 176), GHOST_SMALL = rgb(42, 74, 160), ON = rgb(228, 236, 252);
+  static constexpr uint16_t GHOST = rgb(54, 90, 176), ON = rgb(228, 236, 252);
   static constexpr uint16_t HOLLOW = rgb(30, 58, 140);
   static constexpr uint16_t RED_ON = rgb(255, 70, 70), AMBER_ON = rgb(255, 170, 20), GREEN_ON = rgb(50, 220, 110);
   static constexpr uint16_t BLUE_ON = rgb(60, 130, 255), LAMP_OFF = rgb(62, 64, 72);
   static constexpr moto::Seg SPEED = {42, 78, 11, 50, 0, 0, ON, GHOST, true, HOLLOW};
-  static constexpr moto::Seg SMALL = {13, 22, 4.5f, 17, 7, 0, ON, GHOST_SMALL, false};
+  static constexpr moto::Seg SMALL = {13, 24, 3.5f, 17, 7, 0, ON, 0, false};
   static const int LX0 = 114, LY0 = 34, LW = 252, LH = 228;
 
   LGFX &lcd;
@@ -558,7 +564,7 @@ private:
   // 6 OBD link, 7 shift (right pod); 8 = CHECK tag on the panel.
   static void lampAt(int id, int &x, int &y) {
     static const int PX[8] = {24, 66, 24, 66, 388, 430, 388, 430};
-    static const int PY[8] = {140, 140, 190, 190, 140, 140, 190, 190};
+    static const int PY[8] = {148, 148, 204, 204, 148, 148, 204, 204};
     if (id < 8) { x = PX[id]; y = PY[id]; }
     else { x = 124; y = 88; }
   }
@@ -645,7 +651,7 @@ private:
     p.text("TRIP B", 250, 180, &fonts::FreeSansBold9pt7b, ON, middle_left);
     number(p, SMALL, "    . ", 246, 190);
     p.text("km", 340, 206, &fonts::FreeSansBold9pt7b, ON, middle_left);
-    p.text("WATER", 124, 236, &fonts::FreeSansBold9pt7b, ON, middle_left);
+    p.text("TEMP", 124, 236, &fonts::FreeSansBold9pt7b, ON, middle_left);
     number(p, SMALL, "   ", 188, 224);
     p.unit("*C", 240, 238, &fonts::FreeSansBold9pt7b, ON);
     number(p, SMALL, "  . ", 276, 224);
@@ -655,9 +661,5 @@ private:
       lampAt(id, x, y);
       drawLamp(p, id, 0, x, y);
     }
-    // headlight lamp ghost on the left pod (no OBD signal for it)
-    bg.fillArc(42, 228 - Y0, 8, 10, 90, 270, LAMP_OFF);
-    bg.fillRect(42, 218 - Y0, 3, 21, LAMP_OFF);
-    for (int k = 0; k < 4; k++) bg.fillRect(47, 220 + k * 5 - Y0, 9, 2, LAMP_OFF);
   }
 };
